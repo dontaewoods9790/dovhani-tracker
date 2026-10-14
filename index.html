@@ -1,1 +1,1136 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { 
+  Luggage, 
+  Shirt, 
+  Sparkles, 
+  Laptop, 
+  FileText, 
+  Baby, 
+  Plus, 
+  Trash2, 
+  RotateCcw, 
+  CheckCircle2, 
+  Circle, 
+  Search, 
+  Sun, 
+  Moon, 
+  Plane, 
+  AlertTriangle, 
+  CheckCheck, 
+  ChevronDown, 
+  ChevronUp, 
+  Star,
+  Copy,
+  Check,
+  Briefcase,
+  Compass,
+  Palmtree,
+  Snowflake
+} from 'lucide-react';
 
+const CATEGORIES = [
+  { id: 'documents', name: 'Travel Documents', icon: FileText, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
+  { id: 'clothing', name: 'Clothing & Footwear', icon: Shirt, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+  { id: 'toiletries', name: 'Toiletries & Health', icon: Sparkles, color: 'text-teal-500', bg: 'bg-teal-500/10', border: 'border-teal-500/20' },
+  { id: 'electronics', name: 'Electronics & Gear', icon: Laptop, color: 'text-purple-500', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
+  { id: 'family', name: 'Kids & Family Essentials', icon: Baby, color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
+];
+
+const DEFAULT_ITEMS = [
+  // Travel Documents
+  { id: 'doc-1', name: 'Passports / Government IDs', category: 'documents', packed: false, quantity: 1, essential: true },
+  { id: 'doc-2', name: 'Boarding Passes & Tickets', category: 'documents', packed: false, quantity: 1, essential: true },
+  { id: 'doc-3', name: 'Hotel & Rental Confirmations', category: 'documents', packed: false, quantity: 1, essential: false },
+  { id: 'doc-4', name: 'Credit Cards & Local Currency', category: 'documents', packed: false, quantity: 1, essential: true },
+  { id: 'doc-5', name: 'Travel Insurance & Health Cards', category: 'documents', packed: false, quantity: 1, essential: false },
+  
+  // Clothing
+  { id: 'clo-1', name: 'T-Shirts / Casual Tops', category: 'clothing', packed: false, quantity: 5, essential: false },
+  { id: 'clo-2', name: 'Underwear & Socks', category: 'clothing', packed: false, quantity: 7, essential: true },
+  { id: 'clo-3', name: 'Pants / Shorts / Skirts', category: 'clothing', packed: false, quantity: 3, essential: false },
+  { id: 'clo-4', name: 'Sleepwear / Pajamas', category: 'clothing', packed: false, quantity: 2, essential: false },
+  { id: 'clo-5', name: 'Comfortable Walking Shoes', category: 'clothing', packed: false, quantity: 1, essential: true },
+  { id: 'clo-6', name: 'Light Jacket or Sweater', category: 'clothing', packed: false, quantity: 1, essential: false },
+  { id: 'clo-7', name: 'Swimwear & Cover-up', category: 'clothing', packed: false, quantity: 2, essential: false },
+
+  // Toiletries
+  { id: 'toi-1', name: 'Toothbrush, Toothpaste & Floss', category: 'toiletries', packed: false, quantity: 1, essential: true },
+  { id: 'toi-2', name: 'Deodorant & Perfume', category: 'toiletries', packed: false, quantity: 1, essential: false },
+  { id: 'toi-3', name: 'Sunscreen & Lip Balm (SPF)', category: 'toiletries', packed: false, quantity: 1, essential: true },
+  { id: 'toi-4', name: 'Prescription Medications', category: 'toiletries', packed: false, quantity: 1, essential: true },
+  { id: 'toi-5', name: 'First-Aid Kit & Pain Relievers', category: 'toiletries', packed: false, quantity: 1, essential: false },
+  { id: 'toi-6', name: 'Shampoo, Conditioner & Body Wash', category: 'toiletries', packed: false, quantity: 1, essential: false },
+
+  // Electronics
+  { id: 'ele-1', name: 'Smartphone & Charging Cable', category: 'electronics', packed: false, quantity: 1, essential: true },
+  { id: 'ele-2', name: 'Portable Power Bank', category: 'electronics', packed: false, quantity: 1, essential: false },
+  { id: 'ele-3', name: 'Noise-Canceling Headphones', category: 'electronics', packed: false, quantity: 1, essential: false },
+  { id: 'ele-4', name: 'Universal Travel Adapter', category: 'electronics', packed: false, quantity: 1, essential: false },
+  { id: 'ele-5', name: 'Camera & Extra Memory Cards', category: 'electronics', packed: false, quantity: 1, essential: false },
+
+  // Kids & Family
+  { id: 'fam-1', name: 'Travel Snacks & Spill-Proof Water Bottles', category: 'family', packed: false, quantity: 2, essential: true },
+  { id: 'fam-2', name: 'Sanitizing Wipes & Hand Sanitizer', category: 'family', packed: false, quantity: 2, essential: false },
+  { id: 'fam-3', name: 'Favorite Comfort Toy / Blanket', category: 'family', packed: false, quantity: 1, essential: true },
+  { id: 'fam-4', name: 'Travel Games, Books & Coloring Pad', category: 'family', packed: false, quantity: 1, essential: false },
+  { id: 'fam-5', name: 'Stroller / Baby Carrier', category: 'family', packed: false, quantity: 1, essential: false },
+];
+
+const PRESET_TEMPLATES = {
+  beach: [
+    { name: 'Polarized Sunglasses', category: 'clothing', quantity: 1, essential: true },
+    { name: 'Flip-Flops / Sandals', category: 'clothing', quantity: 1, essential: false },
+    { name: 'After-Sun Aloe Vera Gel', category: 'toiletries', quantity: 1, essential: false },
+    { name: 'Waterproof Phone Pouch', category: 'electronics', quantity: 1, essential: false },
+    { name: 'Sand Toys & Floaties', category: 'family', quantity: 1, essential: false },
+  ],
+  winter: [
+    { name: 'Thermal Base Layers', category: 'clothing', quantity: 3, essential: true },
+    { name: 'Heavy Winter Coat', category: 'clothing', quantity: 1, essential: true },
+    { name: 'Gloves, Beanie & Scarf', category: 'clothing', quantity: 1, essential: true },
+    { name: 'Hand & Foot Warmers', category: 'toiletries', quantity: 4, essential: false },
+    { name: 'Heavy Moisturizing Cream', category: 'toiletries', quantity: 1, essential: false },
+  ],
+  business: [
+    { name: 'Formal Suits / Blazers', category: 'clothing', quantity: 2, essential: true },
+    { name: 'Dress Shoes & Belt', category: 'clothing', quantity: 1, essential: true },
+    { name: 'Laptop & Charger', category: 'electronics', quantity: 1, essential: true },
+    { name: 'Business Cards & Badges', category: 'documents', quantity: 1, essential: false },
+    { name: 'Portable Garment Steamer', category: 'electronics', quantity: 1, essential: false },
+  ]
+};
+
+export default function App() {
+  // Load state from localStorage with safe fallbacks
+  const [items, setItems] = useState(() => {
+    try {
+      const saved = localStorage.getItem('vacation_packing_items_v1');
+      return saved ? JSON.parse(saved) : DEFAULT_ITEMS;
+    } catch (e) {
+      return DEFAULT_ITEMS;
+    }
+  });
+
+  const [tripDetails, setTripDetails] = useState(() => {
+    try {
+      const saved = localStorage.getItem('vacation_trip_details_v1');
+      return saved ? JSON.parse(saved) : { title: 'Summer Oahu Escape', days: 7 };
+    } catch (e) {
+      return { title: 'Summer Oahu Escape', days: 7 };
+    }
+  });
+
+  const [darkMode, setDarkMode] = useState(() => {
+    try {
+      const saved = localStorage.getItem('vacation_dark_mode_v1');
+      return saved ? JSON.parse(saved) : false;
+    } catch (e) {
+      return false;
+    }
+  });
+
+  // UI & Filter States
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'unpacked', 'packed', 'essential'
+  const [searchQuery, setSearchQuery] = useState('');
+  const [collapsedCategories, setCollapsedCategories] = useState({});
+  
+  // New Item Form State
+  const [newItemName, setNewItemName] = useState('');
+  const [newItemCategory, setNewItemCategory] = useState('clothing');
+  const [newItemQuantity, setNewItemQuantity] = useState(1);
+  const [newItemEssential, setNewItemEssential] = useState(false);
+
+  // Quick-add inline category state
+  const [quickAddCategory, setQuickAddCategory] = useState(null);
+  const [quickAddName, setQuickAddName] = useState('');
+
+  // Custom Modal & Notification State (No window.alert or window.confirm)
+  const [modalConfig, setModalConfig] = useState(null);
+  const [toastMessage, setToastMessage] = useState(null);
+  const [copiedSummary, setCopiedSummary] = useState(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('vacation_packing_items_v1', JSON.stringify(items));
+    } catch (e) {
+      console.error('Failed to save items to localStorage', e);
+    }
+  }, [items]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('vacation_trip_details_v1', JSON.stringify(tripDetails));
+    } catch (e) {
+      console.error('Failed to save trip details to localStorage', e);
+    }
+  }, [tripDetails]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('vacation_dark_mode_v1', JSON.stringify(darkMode));
+    } catch (e) {
+      console.error('Failed to save theme to localStorage', e);
+    }
+  }, [darkMode]);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage((prev) => (prev === msg ? null : prev));
+    }, 3000);
+  };
+
+  const stats = useMemo(() => {
+    const total = items.length;
+    const packed = items.filter((item) => item.packed).length;
+    const unpacked = total - packed;
+    const percentage = total === 0 ? 0 : Math.round((packed / total) * 100);
+
+    const essentialItems = items.filter((item) => item.essential);
+    const essentialPacked = essentialItems.filter((item) => item.packed).length;
+    const essentialTotal = essentialItems.length;
+
+    const totalQuantity = items.reduce((acc, item) => acc + (Number(item.quantity) || 1), 0);
+
+    return {
+      total,
+      packed,
+      unpacked,
+      percentage,
+      essentialPacked,
+      essentialTotal,
+      totalQuantity
+    };
+  }, [items]);
+
+  const toggleItemPacked = (id) => {
+    setItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, packed: !item.packed } : item))
+    );
+  };
+
+  const toggleItemEssential = (id) => {
+    setItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, essential: !item.essential } : item))
+    );
+  };
+
+  const updateItemQuantity = (id, delta) => {
+    setItems((prev) =>
+      prev.map((item) => {
+        if (item.id === id) {
+          const nextQty = Math.max(1, Math.min(99, (item.quantity || 1) + delta));
+          return { ...item, quantity: nextQty };
+        }
+        return item;
+      })
+    );
+  };
+
+  const deleteItem = (id, name) => {
+    setItems((prev) => prev.filter((item) => item.id !== id));
+    showToast(`Removed "${name}"`);
+  };
+
+  const handleAddItem = (e) => {
+    e.preventDefault();
+    const trimmed = newItemName.trim();
+    if (!trimmed) return;
+
+    const newItem = {
+      id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      name: trimmed,
+      category: newItemCategory,
+      packed: false,
+      quantity: Math.max(1, Number(newItemQuantity) || 1),
+      essential: newItemEssential,
+    };
+
+    setItems((prev) => [newItem, ...prev]);
+    setNewItemName('');
+    setNewItemQuantity(1);
+    setNewItemEssential(false);
+    // Ensure target category is expanded
+    setCollapsedCategories((prev) => ({ ...prev, [newItemCategory]: false }));
+    showToast(`Added "${trimmed}" to checklist!`);
+  };
+
+  const handleQuickAdd = (e, categoryId) => {
+    e.preventDefault();
+    const trimmed = quickAddName.trim();
+    if (!trimmed) return;
+
+    const newItem = {
+      id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      name: trimmed,
+      category: categoryId,
+      packed: false,
+      quantity: 1,
+      essential: false,
+    };
+
+    setItems((prev) => [...prev, newItem]);
+    setQuickAddName('');
+    setQuickAddCategory(null);
+    showToast(`Added "${trimmed}"!`);
+  };
+
+  const toggleCategoryCollapse = (catId) => {
+    setCollapsedCategories((prev) => ({
+      ...prev,
+      [catId]: !prev[catId],
+    }));
+  };
+
+  const markCategoryAll = (catId, packState) => {
+    setItems((prev) =>
+      prev.map((item) => (item.category === catId ? { ...item, packed: packState } : item))
+    );
+    const catName = CATEGORIES.find((c) => c.id === catId)?.name || 'Category';
+    showToast(packState ? `Packed all in ${catName}!` : `Unpacked all in ${catName}.`);
+  };
+
+  const openClearCheckmarksModal = () => {
+    setModalConfig({
+      title: 'Uncheck All Items?',
+      description: 'This will reset all packed checkmarks back to unpacked so you can reuse your list for your next trip.',
+      confirmText: 'Uncheck All',
+      confirmStyle: 'bg-amber-600 hover:bg-amber-700 text-white',
+      onConfirm: () => {
+        setItems((prev) => prev.map((item) => ({ ...item, packed: false })));
+        setModalConfig(null);
+        showToast('All checkmarks cleared!');
+      },
+    });
+  };
+
+  const openResetDefaultModal = () => {
+    setModalConfig({
+      title: 'Restore Default Packing List?',
+      description: 'This will replace your current items and custom additions with the standard starter packing checklist.',
+      confirmText: 'Restore Defaults',
+      confirmStyle: 'bg-rose-600 hover:bg-rose-700 text-white',
+      onConfirm: () => {
+        setItems(DEFAULT_ITEMS);
+        setModalConfig(null);
+        showToast('Restored default checklist!');
+      },
+    });
+  };
+
+  const applyPresetPack = (presetKey, label) => {
+    const templateItems = PRESET_TEMPLATES[presetKey] || [];
+    const existingNames = new Set(items.map((i) => i.name.toLowerCase()));
+    const toAdd = templateItems
+      .filter((t) => !existingNames.has(t.name.toLowerCase()))
+      .map((t, idx) => ({
+        ...t,
+        id: `preset-${Date.now()}-${idx}`,
+        packed: false,
+      }));
+
+    if (toAdd.length === 0) {
+      showToast(`All ${label} items are already in your list!`);
+      return;
+    }
+
+    setItems((prev) => [...prev, ...toAdd]);
+    showToast(`Added ${toAdd.length} ${label} essentials!`);
+  };
+
+  const copyChecklistSummary = () => {
+    const lines = [
+      `✈️ ${tripDetails.title} (${tripDetails.days} Days) - Packing Progress: ${stats.percentage}% (${stats.packed}/${stats.total})`,
+      '',
+    ];
+
+    CATEGORIES.forEach((cat) => {
+      const catItems = items.filter((i) => i.category === cat.id);
+      if (catItems.length > 0) {
+        lines.push(`=== ${cat.name.toUpperCase()} ===`);
+        catItems.forEach((item) => {
+          const check = item.packed ? '[x]' : '[ ]';
+          const qty = item.quantity > 1 ? ` (x${item.quantity})` : '';
+          const ess = item.essential ? ' ⭐' : '';
+          lines.push(`${check} ${item.name}${qty}${ess}`);
+        });
+        lines.push('');
+      }
+    });
+
+    const textArea = document.createElement('textarea');
+    textArea.value = lines.join('\n');
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      setCopiedSummary(true);
+      showToast('Packing list copied to clipboard!');
+      setTimeout(() => setCopiedSummary(false), 2500);
+    } catch (err) {
+      showToast('Could not copy to clipboard');
+    }
+    document.body.removeChild(textArea);
+  };
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesStatus =
+        statusFilter === 'all'
+          ? true
+          : statusFilter === 'packed'
+          ? item.packed
+          : statusFilter === 'unpacked'
+          ? !item.packed
+          : statusFilter === 'essential'
+          ? item.essential
+          : true;
+
+      const matchesSearch = item.name
+        .toLowerCase()
+        .includes(searchQuery.trim().toLowerCase());
+
+      return matchesStatus && matchesSearch;
+    });
+  }, [items, statusFilter, searchQuery]);
+
+  // Dynamic Progress Bar Status Message
+  const getProgressFeedback = (pct) => {
+    if (stats.total === 0) return { text: 'Add items to begin your packing journey!', color: 'from-slate-400 to-slate-500' };
+    if (pct === 0) return { text: 'Ready to start packing! Grab your suitcase.', color: 'from-sky-500 to-indigo-500' };
+    if (pct < 35) return { text: 'Off to a great start! Keep checking things off.', color: 'from-sky-500 to-teal-500' };
+    if (pct < 75) return { text: 'Making solid headway! Over halfway there soon.', color: 'from-teal-500 to-emerald-500' };
+    if (pct < 100) return { text: 'Almost packed! Double-check your essentials.', color: 'from-emerald-500 to-lime-500' };
+    return { text: '100% Packed & Ready for Takeoff! Bon Voyage! 🎉', color: 'from-emerald-500 via-teal-500 to-cyan-500' };
+  };
+
+  const progressInfo = getProgressFeedback(stats.percentage);
+
+  return (
+    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-800'} font-sans pb-16`}>
+      
+      {/* Top Sticky Progress & Brand Bar */}
+      <header className={`sticky top-0 z-30 backdrop-blur-md border-b transition-colors duration-300 ${
+        darkMode ? 'bg-slate-900/90 border-slate-800' : 'bg-white/90 border-slate-200/80 shadow-sm'
+      }`}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3.5">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            
+            {/* Brand & Editable Trip Title */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-teal-500 flex items-center justify-center text-white shadow-md shadow-sky-500/20 shrink-0">
+                  <Plane className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={tripDetails.title}
+                      onChange={(e) => setTripDetails({ ...tripDetails, title: e.target.value })}
+                      aria-label="Trip Name"
+                      className={`font-bold text-lg sm:text-xl bg-transparent border-b border-transparent focus:border-sky-500 focus:outline-none transition-colors px-0.5 -ml-0.5 rounded ${
+                        darkMode ? 'text-white hover:border-slate-700' : 'text-slate-900 hover:border-slate-300'
+                      }`}
+                    />
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full hidden sm:inline-flex items-center gap-1 ${
+                      darkMode ? 'bg-slate-800 text-sky-400' : 'bg-sky-50 text-sky-700'
+                    }`}>
+                      <Compass className="w-3 h-3" />
+                      <input
+                        type="number"
+                        min="1"
+                        max="90"
+                        value={tripDetails.days}
+                        onChange={(e) => setTripDetails({ ...tripDetails, days: Math.max(1, parseInt(e.target.value) || 1) })}
+                        className="w-8 bg-transparent text-center font-semibold focus:outline-none"
+                        title="Trip duration in days"
+                      />
+                      days
+                    </span>
+                  </div>
+                  <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    {progressInfo.text}
+                  </p>
+                </div>
+              </div>
+
+              {/* Mobile Theme & Export Buttons */}
+              <div className="flex items-center gap-1.5 md:hidden">
+                <button
+                  onClick={copyChecklistSummary}
+                  className={`p-2 rounded-xl border transition-colors ${
+                    darkMode ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
+                  }`}
+                  title="Copy checklist to clipboard"
+                >
+                  {copiedSummary ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                </button>
+                <button
+                  onClick={() => setDarkMode(!darkMode)}
+                  className={`p-2 rounded-xl border transition-colors ${
+                    darkMode ? 'bg-slate-800 border-slate-700 text-amber-400 hover:bg-slate-700' : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
+                  }`}
+                  title="Toggle Dark/Light Theme"
+                >
+                  {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Completion Bar & Percentage Readout */}
+            <div className="flex-1 max-w-xl w-full md:mx-4">
+              <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
+                <div className="flex items-center gap-2">
+                  <span className={darkMode ? 'text-slate-300' : 'text-slate-700'}>
+                    {stats.packed} of {stats.total} items packed
+                  </span>
+                  {stats.essentialTotal > 0 && (
+                    <span className={`px-2 py-0.5 rounded-full text-[11px] flex items-center gap-1 ${
+                      stats.essentialPacked === stats.essentialTotal
+                        ? 'bg-emerald-500/15 text-emerald-500'
+                        : 'bg-amber-500/15 text-amber-500'
+                    }`}>
+                      <Star className="w-3 h-3 fill-current" />
+                      {stats.essentialPacked}/{stats.essentialTotal} Essentials
+                    </span>
+                  )}
+                </div>
+                <span className={`text-sm font-bold ${
+                  stats.percentage === 100 ? 'text-emerald-500' : 'text-sky-500'
+                }`}>
+                  {stats.percentage}%
+                </span>
+              </div>
+
+              {/* Animated Progress Track */}
+              <div className={`w-full h-3 rounded-full overflow-hidden p-0.5 ${
+                darkMode ? 'bg-slate-800' : 'bg-slate-200/80'
+              }`}>
+                <div
+                  className={`h-full rounded-full bg-gradient-to-r ${progressInfo.color} transition-all duration-500 ease-out relative`}
+                  style={{ width: `${stats.percentage}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Desktop Utility Buttons */}
+            <div className="hidden md:flex items-center gap-2">
+              <button
+                onClick={copyChecklistSummary}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition-all ${
+                  darkMode 
+                    ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700' 
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'
+                }`}
+              >
+                {copiedSummary ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copiedSummary ? 'Copied' : 'Export'}</span>
+              </button>
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                className={`p-2 rounded-xl border transition-all ${
+                  darkMode 
+                    ? 'bg-slate-800 border-slate-700 text-amber-400 hover:bg-slate-700' 
+                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm'
+                }`}
+                title="Toggle Dark Mode"
+              >
+                {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </header>
+
+      {}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
+        
+        {/* Control Grid: Add Custom Item Form + Quick Actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-6">
+          
+          {/* Add Item Card */}
+          <div className={`lg:col-span-7 rounded-2xl p-5 border transition-colors ${
+            darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200/80 shadow-sm'
+          }`}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2 text-sky-500">
+                <Plus className="w-4 h-4" />
+                Add Custom Packing Item
+              </h2>
+              <span className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                Total Qty: {stats.totalQuantity} pcs
+              </span>
+            </div>
+
+            <form onSubmit={handleAddItem} className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+                <div className="sm:col-span-6">
+                  <input
+                    type="text"
+                    placeholder="e.g., Polarized Sunglasses, Adapter..."
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                    className={`w-full px-3.5 py-2.5 rounded-xl text-sm border focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all ${
+                      darkMode 
+                        ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' 
+                        : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:bg-white'
+                    }`}
+                  />
+                </div>
+
+                <div className="sm:col-span-4">
+                  <select
+                    value={newItemCategory}
+                    onChange={(e) => setNewItemCategory(e.target.value)}
+                    className={`w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all ${
+                      darkMode 
+                        ? 'bg-slate-800 border-slate-700 text-white' 
+                        : 'bg-slate-50 border-slate-200 text-slate-700 focus:bg-white'
+                    }`}
+                  >
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max="99"
+                    value={newItemQuantity}
+                    onChange={(e) => setNewItemQuantity(e.target.value)}
+                    title="Quantity"
+                    placeholder="Qty"
+                    className={`w-full px-3 py-2.5 rounded-xl text-sm text-center border focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all ${
+                      darkMode 
+                        ? 'bg-slate-800 border-slate-700 text-white' 
+                        : 'bg-slate-50 border-slate-200 text-slate-700 focus:bg-white'
+                    }`}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                <label className="inline-flex items-center gap-2 cursor-pointer select-none text-xs font-medium">
+                  <input
+                    type="checkbox"
+                    checked={newItemEssential}
+                    onChange={(e) => setNewItemEssential(e.target.checked)}
+                    className="rounded text-amber-500 focus:ring-amber-500 w-4 h-4 cursor-pointer"
+                  />
+                  <span className={`flex items-center gap-1 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                    <Star className={`w-3.5 h-3.5 ${newItemEssential ? 'text-amber-500 fill-amber-500' : 'text-slate-400'}`} />
+                    Mark as Must-Have Essential
+                  </span>
+                </label>
+
+                <button
+                  type="submit"
+                  disabled={!newItemName.trim()}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-teal-500 hover:from-sky-600 hover:to-teal-600 disabled:opacity-40 text-white font-semibold text-xs sm:text-sm shadow-sm shadow-sky-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add to List
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Smart Trip Booster & Reset Controls */}
+          <div className={`lg:col-span-5 rounded-2xl p-5 border flex flex-col justify-between transition-colors ${
+            darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200/80 shadow-sm'
+          }`}>
+            <div>
+              <h2 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2 text-teal-500 mb-2">
+                <Luggage className="w-4 h-4" />
+                Quick-Add Trip Boosters
+              </h2>
+              <p className={`text-xs mb-3 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                One-tap bundles to add specialized gear for your destination:
+              </p>
+
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                <button
+                  type="button"
+                  onClick={() => applyPresetPack('beach', 'Beach')}
+                  className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-medium transition-all ${
+                    darkMode 
+                      ? 'bg-slate-800/70 border-slate-700 hover:border-amber-500/50 text-slate-200' 
+                      : 'bg-amber-50/60 border-amber-200/70 hover:bg-amber-100/70 text-amber-900'
+                  }`}
+                >
+                  <Palmtree className="w-4 h-4 text-amber-500 mb-1" />
+                  <span>Beach Sun</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => applyPresetPack('winter', 'Winter')}
+                  className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-medium transition-all ${
+                    darkMode 
+                      ? 'bg-slate-800/70 border-slate-700 hover:border-sky-500/50 text-slate-200' 
+                      : 'bg-sky-50/60 border-sky-200/70 hover:bg-sky-100/70 text-sky-900'
+                  }`}
+                >
+                  <Snowflake className="w-4 h-4 text-sky-500 mb-1" />
+                  <span>Winter Gear</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => applyPresetPack('business', 'Business')}
+                  className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-medium transition-all ${
+                    darkMode 
+                      ? 'bg-slate-800/70 border-slate-700 hover:border-purple-500/50 text-slate-200' 
+                      : 'bg-purple-50/60 border-purple-200/70 hover:bg-purple-100/70 text-purple-900'
+                  }`}
+                >
+                  <Briefcase className="w-4 h-4 text-purple-500 mb-1" />
+                  <span>Business</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Bulk Reset Actions */}
+            <div className="flex items-center justify-between gap-2 pt-3 border-t border-dashed border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={openClearCheckmarksModal}
+                disabled={stats.packed === 0}
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all disabled:opacity-40 ${
+                  darkMode 
+                    ? 'bg-slate-800 border-slate-700 text-amber-400 hover:bg-slate-700' 
+                    : 'bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100'
+                }`}
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Uncheck All ({stats.packed})
+              </button>
+
+              <button
+                type="button"
+                onClick={openResetDefaultModal}
+                className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
+                  darkMode 
+                    ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700' 
+                    : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
+                }`}
+                title="Reset list to starter defaults"
+              >
+                Reset List
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {}
+        <div className={`rounded-2xl p-3 sm:p-4 mb-6 border flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 transition-colors ${
+          darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200/80 shadow-sm'
+        }`}>
+          {/* Filter Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+            {[
+              { id: 'all', label: 'All Items', count: stats.total },
+              { id: 'unpacked', label: 'To Pack', count: stats.unpacked },
+              { id: 'packed', label: 'Packed', count: stats.packed },
+              { id: 'essential', label: 'Essentials ⭐', count: stats.essentialTotal },
+            ].map((tab) => {
+              const active = statusFilter === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setStatusFilter(tab.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                    active
+                      ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/30'
+                      : darkMode
+                      ? 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                    active
+                      ? 'bg-white/20 text-white'
+                      : darkMode
+                      ? 'bg-slate-800 text-slate-400'
+                      : 'bg-slate-200/70 text-slate-600'
+                  }`}>
+                    {tab.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Search Input */}
+          <div className="relative sm:w-64">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search items..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={`w-full pl-9 pr-8 py-1.5 rounded-xl text-xs sm:text-sm border focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all ${
+                darkMode 
+                  ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' 
+                  : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:bg-white'
+              }`}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-200"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+
+        {}
+        {filteredItems.length === 0 ? (
+          <div className={`rounded-2xl p-12 text-center border ${
+            darkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200/80'
+          }`}>
+            <Luggage className="w-12 h-12 mx-auto text-sky-500/60 mb-3" />
+            <h3 className="text-base font-bold mb-1">No matching items found</h3>
+            <p className={`text-xs max-w-md mx-auto mb-4 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              {searchQuery
+                ? `No items match "${searchQuery}" under the current filter.`
+                : statusFilter === 'packed'
+                ? "You haven't checked off any packed items yet."
+                : statusFilter === 'unpacked'
+                ? 'Everything is packed! You are ready for your vacation.'
+                : 'Your packing list is currently empty.'}
+            </p>
+            {(searchQuery || statusFilter !== 'all') && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setStatusFilter('all');
+                }}
+                className="px-4 py-2 rounded-xl bg-sky-500 text-white text-xs font-semibold hover:bg-sky-600 transition-colors"
+              >
+                Show All Items
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {CATEGORIES.map((category) => {
+              const categoryAllItems = items.filter((i) => i.category === category.id);
+              const categoryFilteredItems = filteredItems.filter((i) => i.category === category.id);
+
+              // Hide category if filtering or searching leaves 0 items in it (unless user is quick-adding to it)
+              if (categoryFilteredItems.length === 0 && (searchQuery || statusFilter !== 'all')) {
+                return null;
+              }
+
+              const catPacked = categoryAllItems.filter((i) => i.packed).length;
+              const catTotal = categoryAllItems.length;
+              const catPercent = catTotal === 0 ? 0 : Math.round((catPacked / catTotal) * 100);
+              const isCollapsed = !!collapsedCategories[category.id];
+              const IconComponent = category.icon;
+              const allCatPacked = catTotal > 0 && catPacked === catTotal;
+
+              return (
+                <section
+                  key={category.id}
+                  className={`rounded-2xl border transition-all flex flex-col overflow-hidden ${
+                    darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200/80 shadow-sm'
+                  }`}
+                >
+                  {/* Category Header */}
+                  <div className={`p-4 border-b transition-colors ${
+                    darkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50/50'
+                  }`}>
+                    <div className="flex items-center justify-between gap-2 mb-2.5">
+                      <button
+                        type="button"
+                        onClick={() => toggleCategoryCollapse(category.id)}
+                        className="flex items-center gap-2.5 text-left group flex-1"
+                      >
+                        <div className={`w-9 h-9 rounded-xl ${category.bg} ${category.border} border flex items-center justify-center shrink-0`}>
+                          <IconComponent className={`w-5 h-5 ${category.color}`} />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-sm sm:text-base group-hover:text-sky-500 transition-colors">
+                              {category.name}
+                            </h3>
+                            {allCatPacked && (
+                              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500">
+                                Done
+                              </span>
+                            )}
+                          </div>
+                          <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                            {catPacked} of {catTotal} packed ({catPercent}%)
+                          </p>
+                        </div>
+                      </button>
+
+                      <div className="flex items-center gap-1">
+                        {catTotal > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => markCategoryAll(category.id, !allCatPacked)}
+                            title={allCatPacked ? 'Unpack entire category' : 'Pack entire category'}
+                            className={`p-1.5 rounded-lg text-xs font-medium transition-colors ${
+                              allCatPacked
+                                ? 'text-emerald-500 hover:bg-emerald-500/10'
+                                : darkMode
+                                ? 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                                : 'text-slate-500 hover:bg-slate-200/60 hover:text-slate-700'
+                            }`}
+                          >
+                            <CheckCheck className="w-4 h-4" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setQuickAddCategory(quickAddCategory === category.id ? null : category.id);
+                            setCollapsedCategories((prev) => ({ ...prev, [category.id]: false }));
+                          }}
+                          title="Quick add item to this category"
+                          className={`p-1.5 rounded-lg transition-colors ${
+                            quickAddCategory === category.id
+                              ? 'bg-sky-500 text-white'
+                              : darkMode
+                              ? 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                              : 'text-slate-500 hover:bg-slate-200/60 hover:text-slate-700'
+                          }`}
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => toggleCategoryCollapse(category.id)}
+                          className={`p-1.5 rounded-lg transition-colors ${
+                            darkMode ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-500 hover:bg-slate-200/60'
+                          }`}
+                          aria-label="Toggle category collapse"
+                        >
+                          {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Mini Category Progress Bar */}
+                    <div className={`w-full h-1.5 rounded-full overflow-hidden ${
+                      darkMode ? 'bg-slate-800' : 'bg-slate-200'
+                    }`}>
+                      <div
+                        className={`h-full transition-all duration-300 ${
+                          allCatPacked ? 'bg-emerald-500' : 'bg-sky-500'
+                        }`}
+                        style={{ width: `${catPercent}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Quick Add Inline Input */}
+                  {quickAddCategory === category.id && !isCollapsed && (
+                    <form
+                      onSubmit={(e) => handleQuickAdd(e, category.id)}
+                      className={`p-3 border-b flex items-center gap-2 ${
+                        darkMode ? 'bg-slate-800/60 border-slate-800' : 'bg-sky-50/50 border-slate-100'
+                      }`}
+                    >
+                      <input
+                        type="text"
+                        autoFocus
+                        placeholder={`Add item to ${category.name}...`}
+                        value={quickAddName}
+                        onChange={(e) => setQuickAddName(e.target.value)}
+                        className={`flex-1 px-3 py-1.5 rounded-xl text-xs border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                          darkMode 
+                            ? 'bg-slate-900 border-slate-700 text-white' 
+                            : 'bg-white border-slate-200 text-slate-800'
+                        }`}
+                      />
+                      <button
+                        type="submit"
+                        className="px-3 py-1.5 rounded-xl bg-sky-500 text-white text-xs font-semibold hover:bg-sky-600"
+                      >
+                        Add
+                      </button>
+                    </form>
+                  )}
+
+                  {/* Category Items List */}
+                  {!isCollapsed && (
+                    <div className="divide-y divide-slate-100 dark:divide-slate-800/70 flex-1">
+                      {categoryFilteredItems.length === 0 ? (
+                        <div className="p-6 text-center">
+                          <p className={`text-xs ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                            No items in this category yet. Click + above to add one!
+                          </p>
+                        </div>
+                      ) : (
+                        categoryFilteredItems.map((item) => (
+                          <div
+                            key={item.id}
+                            className={`px-4 py-3 flex items-center justify-between gap-2 transition-colors group ${
+                              item.packed
+                                ? darkMode
+                                  ? 'bg-slate-900/40'
+                                  : 'bg-slate-50/70'
+                                : darkMode
+                                ? 'hover:bg-slate-800/40'
+                                : 'hover:bg-slate-50/90'
+                            }`}
+                          >
+                            {/* Checkbox + Item Name */}
+                            <button
+                              type="button"
+                              onClick={() => toggleItemPacked(item.id)}
+                              className="flex items-center gap-3 text-left flex-1 min-w-0 cursor-pointer"
+                            >
+                              {item.packed ? (
+                                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 transition-transform scale-105" />
+                              ) : (
+                                <Circle className={`w-5 h-5 shrink-0 transition-colors ${
+                                  darkMode ? 'text-slate-600 group-hover:text-sky-400' : 'text-slate-300 group-hover:text-sky-500'
+                                }`} />
+                              )}
+                              <div className="truncate">
+                                <span
+                                  className={`text-sm font-medium transition-all ${
+                                    item.packed
+                                      ? 'line-through text-slate-400 dark:text-slate-500'
+                                      : darkMode
+                                      ? 'text-slate-100'
+                                      : 'text-slate-800'
+                                  }`}
+                                >
+                                  {item.name}
+                                </span>
+                                {item.essential && (
+                                  <span className="ml-2 inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-500">
+                                    <Star className="w-2.5 h-2.5 fill-amber-500" />
+                                    Essential
+                                  </span>
+                                )}
+                              </div>
+                            </button>
+
+                            {/* Right Side Controls: Quantity Stepper, Essential Star, Delete */}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {/* Quantity Stepper */}
+                              <div className={`flex items-center rounded-lg border text-xs ${
+                                darkMode ? 'border-slate-800 bg-slate-800/70' : 'border-slate-200 bg-slate-100/70'
+                              }`}>
+                                <button
+                                  type="button"
+                                  onClick={() => updateItemQuantity(item.id, -1)}
+                                  disabled={item.quantity <= 1}
+                                  className="px-1.5 py-0.5 hover:text-sky-500 disabled:opacity-30 transition-colors"
+                                  aria-label="Decrease quantity"
+                                >
+                                  -
+                                </button>
+                                <span className="px-1.5 font-semibold min-w-[1.5rem] text-center">
+                                  {item.quantity || 1}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => updateItemQuantity(item.id, 1)}
+                                  className="px-1.5 py-0.5 hover:text-sky-500 transition-colors"
+                                  aria-label="Increase quantity"
+                                >
+                                  +
+                                </button>
+                              </div>
+
+                              {/* Toggle Essential Button */}
+                              <button
+                                type="button"
+                                onClick={() => toggleItemEssential(item.id)}
+                                title={item.essential ? 'Remove essential mark' : 'Mark as essential'}
+                                className={`p-1.5 rounded-lg transition-colors ${
+                                  item.essential
+                                    ? 'text-amber-500 hover:bg-amber-500/10'
+                                    : 'text-slate-400 opacity-50 hover:opacity-100 hover:bg-slate-200/50 dark:hover:bg-slate-800'
+                                }`}
+                              >
+                                <Star className={`w-3.5 h-3.5 ${item.essential ? 'fill-amber-500' : ''}`} />
+                              </button>
+
+                              {/* Delete Item Button */}
+                              <button
+                                type="button"
+                                onClick={() => deleteItem(item.id, item.name)}
+                                title="Delete item"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </section>
+              );
+            })}
+          </div>
+        )}
+      </main>
+
+      {}
+      {modalConfig && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fadeIn">
+          <div className={`max-w-md w-full rounded-2xl p-6 border shadow-xl transition-all ${
+            darkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+          }`}>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg font-bold">{modalConfig.title}</h3>
+            </div>
+            <p className={`text-sm mb-6 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+              {modalConfig.description}
+            </p>
+            <div className="flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setModalConfig(null)}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-colors ${
+                  darkMode ? 'border-slate-700 hover:bg-slate-800 text-slate-300' : 'border-slate-200 hover:bg-slate-100 text-slate-700'
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={modalConfig.onConfirm}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold transition-colors ${modalConfig.confirmStyle}`}
+              >
+                {modalConfig.confirmText}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-5 right-5 z-40 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-medium shadow-lg border border-slate-700">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+    </div>
+  );
+}
